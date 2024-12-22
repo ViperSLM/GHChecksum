@@ -1,6 +1,7 @@
 #include "CustomString.h"
 
 #include <cstdarg>
+#include <cstring>
 #include <string>
 #include <vector>
 

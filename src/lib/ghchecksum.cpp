@@ -96,7 +96,7 @@ public:
       strOutput += match + '\n';
       counter++;
     }
-    printf("%d QBKeys found in script\n", counter);
+    printf("%d unique QBKeys found in script\n\n", counter);
 
     // Return strOutput to the output pointer
     output->Clear();
@@ -141,7 +141,7 @@ public:
         counter++;
       }
     }
-    printf("Processed %d QBKeys", counter);
+    printf("Processed %d QBKeys\n\n", counter);
     output->Set("%s", qbc.c_str()); // Set contents of output to the processed QBC
   }
 
