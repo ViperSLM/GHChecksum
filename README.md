@@ -4,8 +4,10 @@ Small command-line program used to help translate QBKey checksums back to their 
 Designed for QBC syntax scripts
 
 # How to build
-The only requirements to build the library and program is just CMake and any compiler with support for C++17.
-*(e.g. Visual C++, GCC, Clang)*
+
+**Requirements:**
+- CMake (3.20 or higher)
+- C/C++ compiler with C++17 support *(e.g. Visual C++, GCC, Clang, etc.)*
 
 1. Using a terminal or command prompt, create a new folder inside the root directory which will be used by CMake then simply invoke the following command:
 `cmake ..`
