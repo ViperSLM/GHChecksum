@@ -24,7 +24,9 @@
 #define APP_API __declspec(dllimport)
 #define APP_API_EXTERN extern
 #endif
+#else
+#define APP_API
+#define APP_API_EXTERN
 #endif
 #endif
-
 #endif

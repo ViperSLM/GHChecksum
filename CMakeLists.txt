@@ -10,7 +10,9 @@ option(GHCHECKSUM_COMPILE_AS_SHAREDLIB "Compile ${PROJECT_NAME}Lib as a shared l
 
 if(GHCHECKSUM_COMPILE_AS_SHAREDLIB)
     set(GHCHECKSUM_LIB SHARED)
+if(WIN32)
     add_compile_definitions(GH_EXPORT_DLL)
+endif()
 else()
     set(GHCHECKSUM_LIB STATIC)
     add_compile_definitions(GH_STATIC_LIB)
