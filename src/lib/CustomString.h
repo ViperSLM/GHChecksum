@@ -22,7 +22,7 @@ enum class StringCompare {
 };
 
 
-APP_API_EXTERN class APP_API String {
+class APP_API String {
 public:
   String(void);
   String(const char *format, ...);

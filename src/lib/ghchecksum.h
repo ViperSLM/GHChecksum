@@ -1,47 +1,51 @@
 #ifndef GH_CONVCHECKSUM_H
 #define GH_CONVCHECKSUM_H
+#include "GHChecksum_API.h"
 
-#include <string>
-#include <memory>
+#include "CustomString.h"
 
 namespace GHChecksum {
-class ChecksumConversionApp {
+class APP_API GHChecksumLib {
 public:
 
   /* Constructor: Parses command line arguments */
-  ChecksumConversionApp(int argc, char **argv);
+  GHChecksumLib(int argc, char **argv);
 
   /* Destructor: Does nothing, but does invoke the _impl's
   default delete function. */
-  ~ChecksumConversionApp(void);
+  ~GHChecksumLib(void);
 
   /* Usage message */
   void UsageMsg(void);
 
   /* Parse checksums table to unordered_map object */
-  void ParseChecksumsFile(std::string &input);
+  void ParseChecksumsFile(String &input);
 
   /* Write text to file */
-  void WriteText(std::string &input, const char *fileName);
+  void WriteText(String &input, const char *fileName);
 
   /* Process the QBC script with the loaded checksums table
      and output to *output pointer */
-  void ProcessQBC(std::string &input, std::string *output);
+  void ProcessQBC(String &input, String *output);
 
   /* Load text from file and store into *outputStr pointer */
-  bool LoadText(const char *filePath, std::string *outputStr);
+  bool LoadText(const char *filePath, String *outputStr);
 
   /* Does the input string contain a specific keyword? */
-  bool Contains(std::string &input, const char *txt);
+  bool Contains(String &input, const char *txt);
 
   /* Look for unresolved checksums in QBC script
    and return a string containing a list of all checksums found. */
-  std::string GetChecksums(std::string &input);
+  void GetChecksums(String &input, String *output);
 
 private:
   /* Pointer to implementation [PIMPL] */
-  class CCA_Impl;
-  std::unique_ptr<CCA_Impl> _impl;
+  class GHChecksumLib_Impl;
+#if defined(_WIN32) && !defined(GH_STATIC_LIB)
+  GHChecksumLib_Impl *_impl = nullptr;
+#else
+  LIB_PIMPL<GHChecksumLib_Impl> _impl;
+#endif
 };
 }
 

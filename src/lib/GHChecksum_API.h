@@ -17,7 +17,7 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 
-#if defined(GH_EXPORT_DLL)
+#if defined(GH_EXPORT_DLL) && !defined(GHCHECKSUMS_APP)
 #define APP_API __declspec(dllexport)
 #define APP_API_EXTERN
 #else

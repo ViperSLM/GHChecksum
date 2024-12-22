@@ -10,18 +10,20 @@ option(GHCHECKSUM_COMPILE_AS_SHAREDLIB "Compile ${PROJECT_NAME}Lib as a shared l
 
 if(GHCHECKSUM_COMPILE_AS_SHAREDLIB)
     set(GHCHECKSUM_LIB SHARED)
+    add_compile_definitions(GH_EXPORT_DLL)
 else()
     set(GHCHECKSUM_LIB STATIC)
     add_compile_definitions(GH_STATIC_LIB)
 endif()
 add_library(${PROJECT_NAME}Lib ${GHCHECKSUM_LIB}
-    src/GHChecksum_API.h
-    src/CustomString.h src/CustomString.cpp
-    src/ghchecksum.h src/ghchecksum.cpp
+    src/lib/GHChecksum_API.h
+    src/lib/CustomString.h src/lib/CustomString.cpp
+    src/lib/ghchecksum.h src/lib/ghchecksum.cpp
 )
 
 add_executable(${PROJECT_NAME}
-    main.cpp
+    src/app.h
+    src/main.cpp
 )
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/src/lib)
 target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}Lib)
