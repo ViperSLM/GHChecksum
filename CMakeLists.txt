@@ -44,4 +44,11 @@ add_executable(${TEST_QBKEY}
 )
 target_include_directories(${TEST_QBKEY} PRIVATE ${CMAKE_SOURCE_DIR}/src/lib)
 target_link_libraries(${TEST_QBKEY} PRIVATE ${PROJECT_NAME}Lib)
+
+set(TEST_ROQ roqtest)
+add_executable(${TEST_ROQ}
+    src/tests/roqtable.cpp
+)
+target_include_directories(${TEST_ROQ} PRIVATE ${CMAKE_SOURCE_DIR}/src/lib)
+target_link_libraries(${TEST_ROQ} PRIVATE ${PROJECT_NAME}Lib)
 endif()

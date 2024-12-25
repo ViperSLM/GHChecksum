@@ -10,11 +10,15 @@ int main(int argc, char **argv) {
 
   if (argc > 0) {
     String input;
+    String debug;
+    inst.LoadText(argv[1], &input);
     for (int i = 1; i < argc; ++i) {
-      input.Set("%s", argv[i]);
-      u32 qbKey = inst.GetQBKey(input.Get());
-      printf("%s\t0x%08x\n", input.Get(), qbKey);
+      inst.GetROQValues(input, &debug);
+
+      /*u32 qbKey = inst.GetQBKey(input);
+      printf("%s\t0x%08x\n", input.Get(), qbKey);*/
     }
+    inst.WriteText(debug, "debug.txt");
   }
 
   return 0;

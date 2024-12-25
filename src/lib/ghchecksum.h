@@ -40,9 +40,9 @@ public:
   void GetChecksums(String &input, String *output);
 
   // Generate CRC32 hash bashed on input
-  u32 GetQBKey(String &input);
+  u32 GetQBKey(const char *input);
 
-  const char *QBKeyToString(u32 &qbKey);
+  void GetROQValues(String &input, String *log = nullptr);
 
 private:
   /* Pointer to implementation [PIMPL] */

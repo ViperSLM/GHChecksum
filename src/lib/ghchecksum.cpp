@@ -5,6 +5,7 @@
 #include <iostream>
 #include <regex>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -23,9 +24,12 @@ namespace GHChecksum {
 class GHChecksumLib::GHChecksumLib_Impl {
 public:
   GHChecksumLib_Impl(int argc, char **argv) {
-    _convertedArgs.clear();
-    for (int i = 0; i < argc; ++i) {
-      _convertedArgs.push_back(argv[i]);
+    // Only proceed if command-line arguments are inputted
+    if (argc != 0 && argv != nullptr) {
+      _convertedArgs.clear();
+      for (int i = 0; i < argc; ++i) {
+        _convertedArgs.push_back(argv[i]);
+      }
     }
   }
   ~GHChecksumLib_Impl(void) {}
@@ -95,8 +99,21 @@ public:
     int counter = 0;
     // Output all unique matches to output string
     for (const auto &match : uniqueMatches) {
-      strOutput += match + '\n';
+      // strOutput += match + '\n';
       counter++;
+      std::string hex = match.substr(
+          2, match.size() - 3); // Remove the #" prefix and " suffix
+      printf("%s\n", hex.c_str());
+
+      // Parse to u32 and push to _qbList vector
+      try {
+        u32 hexProper = std::stoul(hex, nullptr, 16);
+        _qbcChecksums.push_back(hexProper);
+      } catch (std::exception &ex) {
+        printf("Exception caught: %s\nSkipping entry %s", ex.what(),
+               hex.c_str());
+        continue;
+      }
     }
     printf("%d unique QBKeys found in script\n\n", counter);
 
@@ -149,37 +166,86 @@ public:
   }
 
   // Generate and output CRC32 checksum
-  u32 QBKeyFromString(String &input) {
+  u32 QBKeyFromString(const char *input) {
     // Using C++ string to make things a little easier
-    std::string strInput(input.Get());
+    std::string strInput(input);
 
     // Ensure the string is in lower-case before proceeding
     std::for_each(strInput.begin(), strInput.end(),
                   [](char &c) { c = tolower(c); });
 
+    // If input is blank, return 0x00
+    if (strInput == "") {
+      return 0x00000000;
+    }
+
     u32 crc = 0xFFFFFFFF;
     for (char chr : strInput) {
-      u8 byte = static_cast<u8>(chr); // Convert to 8-bit integer, unsigned (unsigned char)
+      u8 byte = static_cast<u8>(
+          chr); // Convert to 8-bit integer, unsigned (unsigned char)
       u32 index = (crc ^ byte) & 0xFF;
       crc = _crcTable[index] ^ (crc >> 8);
     }
     return crc;
   }
 
-  // Simply converts the data type of QBKey to a string, so it can be written to
-  // text
-  /* ( Does not convert back to it's original value! )*/
-  const char *QBKeyToString(u32 &qbKey) {
-    _strBuffer.Set("0x%08x", qbKey);
-    return _strBuffer.Get();
+  void processROQ(String &input, String *log) {
+    int counter = 0;
+
+    std::string strInput(input.Get());
+    for (std::regex pat : _roqPatterns) {
+      auto matches_begin =
+          std::sregex_iterator(strInput.begin(), strInput.end(), pat);
+      auto matches_end = std::sregex_iterator();
+
+      std::vector<std::string> uniqueMatches;
+      std::unordered_set<std::string> seen;
+      for (std::sregex_iterator it = matches_begin; it != matches_end; ++it) {
+        std::string match = (*it)[1].str();
+        if (seen.insert(match).second) {
+          if (log != nullptr) {
+#if defined(_DEBUG)
+            _roqList.push_back(match);
+
+            /*log->Append("Debug: [ 0x%08x ]\t%s\n",
+                        QBKeyFromString(match.c_str()), match.c_str());*/
+#endif
+          }
+          uniqueMatches.push_back(match);
+          counter++;
+        }
+      }
+    }
+    if (log != nullptr) {
+#if defined(_DEBUG)
+      log->Append("Debug: Counted %d possible values\n", counter);
+#endif
+    }
+  }
+
+  /* Output .checksums table [QBKeys only] */
+  void WriteTable_QBKeys(void) {}
+
+  /* Form checksums table by comparing QBKeys with values from ROQ script */
+  void AutoFillChecksums(void) {
+    // Loop through each keyword
+    for (usize i = 0; i < _roqList.size(); ++i) {
+      // Loop through each QBKey, looking for a match
+      for (usize j = 0; j < _qbcChecksums.size(); ++j) {
+        std::string *currentKeyword = &_roqList[i];
+        u32 keywordQB = QBKeyFromString(currentKeyword->c_str());
+
+        if (keywordQB == _qbcChecksums[j]) { // Generate checksum for current keyword, then compare
+          _checksumsTable[_qbcChecksums[j]] = *currentKeyword;
+        }
+      }
+    }
   }
 
 private:
-  String _strBuffer; // Used when converting QBKey to a string (not back to it's
-                     // original value!)
-
   std::vector<std::string> _convertedArgs;
-  std::unordered_map<std::string, std::string> _checksumList;
+  std::unordered_map<std::string, std::string> _checksumList; // Old
+
 
   // CRC32 table used for Tony Hawk/Guitar Hero engines
   const u32 _crcTable[256] = {
@@ -226,6 +292,22 @@ private:
       0xbdbdf21c, 0xcabac28a, 0x53b39330, 0x24b4a3a6, 0xbad03605, 0xcdd70693,
       0x54de5729, 0x23d967bf, 0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94,
       0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d};
+
+  std::vector<std::regex> _roqPatterns = {
+      std::regex(R"(Script\s+(\S*))"),
+      std::regex(R"(SectionStruct\s+(\S*))"),
+      std::regex(R"(StructQBKey\s\S+\s*=\s*(\S*))"),
+      std::regex(R"(SectionArray\s+(\S*))"),
+      std::regex(R"($(\S*)$)"),
+  };
+  // QBKeys list generated from reading the inputted QBC script
+  std::vector<u32> _qbcChecksums;
+
+  // ROQ Checksum table
+  std::vector<std::string> _roqList;
+
+  // Final checksums table is stored in here
+  std::unordered_map<u32, std::string> _checksumsTable;
 };
 
 /* -------------------------------------------------- */
@@ -271,8 +353,11 @@ void GHChecksumLib::GetChecksums(String &input, String *output) {
   _impl->getChecksums(input, output);
 }
 
-u32 GHChecksumLib::GetQBKey(String &input) { return _impl->QBKeyFromString(input); }
-const char *GHChecksumLib::QBKeyToString(u32 &qbKey) {
-  return _impl->QBKeyToString(qbKey);
+u32 GHChecksumLib::GetQBKey(const char *input) {
+  return _impl->QBKeyFromString(input);
+}
+
+void GHChecksumLib::GetROQValues(String &input, String *log) {
+  _impl->processROQ(input, log);
 }
 } // namespace GHChecksum
