@@ -34,15 +34,23 @@ public:
 
   /* Does the input string contain a specific keyword? */
   bool Contains(String &input, const char *txt);
+  bool Contains(const char *input, const char *txt);
 
   /* Look for unresolved checksums in QBC script
    and return a string containing a list of all checksums found. */
-  void GetChecksums(String &input, String *output);
+  void GetChecksums(String &input, String *output = nullptr);
 
   // Generate CRC32 hash bashed on input
   u32 GetQBKey(const char *input);
 
-  void GetROQValues(String &input, String *log = nullptr);
+  void GetROQValues(String &input);
+
+  bool IsROQScript(String &input);
+
+  void ProcessChecksums(void);
+
+  void OutputChecksums(String *output);
+  void OutputChecksums_QB(String *output);
 
 private:
   /* Pointer to implementation [PIMPL] */

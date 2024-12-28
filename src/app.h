@@ -14,67 +14,83 @@ constexpr const char *DEFAULT_OUTPUT = "output.q";
 namespace ChecksumApp {
 class ChecksumApp {
 public:
+  enum class RunMode { NONE, GEN_TABLE, GEN_TABLE_ROQ, TRANSLATE };
+
+public:
   inline ChecksumApp(void) {}
   inline ~ChecksumApp(void) { _app.reset(); }
 
   inline int Run(int argc, char **argv) {
+    _outputStrName.Set("%s", DEFAULT_OUTPUT); // Default name of output QBC file
     _app = std::make_unique<GHChecksumLib>(argc, argv);
+    RunMode mode = RunMode::NONE;
+    // Determine run type, depending on the command line arguments
 
-    if (argc < 2 || argc > 4) { /* Outcome 1: No arguments or too many arguments */
+    if (_app->Contains(argv[1], ".q") &&
+             _app->Contains(argv[2], ".checksums")) {
+      if (argv[3] != nullptr) { // Arg 3 has something (used for output name)
+        _outputStrName.Set("%s", argv[3]);
+      }
+      mode = RunMode::TRANSLATE;
+    } // Translate mode
+    else if (_app->Contains(argv[1], ".txt")) // Generate table (ROQ script included)
+      mode = RunMode::GEN_TABLE_ROQ;
+    else if (_app->Contains(argv[1], ".q")) // Generate table
+      mode = RunMode::GEN_TABLE;
+
+    // Do different things depending on run mode
+    std::string outputFile;
+    switch (mode) {
+    case RunMode::GEN_TABLE:
+      _app->LoadText(argv[1], &_qbcScript);
+      _app->GetChecksums(_qbcScript, &_qbkeyTable);
+      outputFile = argv[1];
+      outputFile =
+          outputFile.substr(0, outputFile.find_last_of(".")) + ".checksums";
+      _app->WriteText(_qbkeyTable, outputFile.c_str());
+
+      printf("Checksums written to %s.\n\n", outputFile.c_str());
+      return 0;
+    case RunMode::GEN_TABLE_ROQ:
+      _app->LoadText(argv[1], &_roqScript);
+      if (_app->IsROQScript(_roqScript)) { // Make sure .txt file is an ROQ script before proceeding
+        _app->GetROQValues(_roqScript); // Get ROQ values
+
+        _app->OutputChecksums(&_qbkeyTable);
+
+        outputFile = argv[1];
+        outputFile =
+            outputFile.substr(0, outputFile.find_last_of(".")) + ".checksums";
+        _app->WriteText(_qbkeyTable, outputFile.c_str());
+        return 0;
+      }
+
+      printf("File '%s' is not a ROQ script. Exiting.\n", argv[1]);
+      break; // Should go to 'Return -1'
+    case RunMode::TRANSLATE:
+      _app->LoadText(argv[1], &_qbcScript);
+      _app->LoadText(argv[2], &_qbkeyTable);
+
+      _app->ParseChecksumsFile(_qbkeyTable);
+      _app->ProcessQBC(_qbcScript, &_outputStr);
+
+      _app->WriteText(_outputStr, _outputStrName.Get());
+      return 0;
+    default:
       _app->UsageMsg();
       return 0;
-    } else if (argc < 3) { /* Outcome 2: Expecting a QBC script as the only input */
-      String fileName("%s", argv[1]);
-      if (_app->Contains(fileName, ".q")) {          // Make sure the file end with '.q' before proceeding
-        _app->LoadText(fileName.Get(), &_qbcScript); // Load the specified file and store into _qbcScript string
-        _app->GetChecksums(_qbcScript, &_qbkeyTable);
-
-        // C++ string trickery because I'm too lazy to implement this in the custom string
-        std::string temp(fileName.Get());
-
-        /* Replace the '.q' suffix in the filename with '.checksums'.
-           This will be the filename for the new table. */
-        temp = temp.substr(0, temp.find_last_of(".")) + ".checksums"; // Replace the '.q' suffix in the filename
-        _app->WriteText(_qbkeyTable, temp.c_str()); // Save checksums table to file
-
-        printf("Checksums written to %s.\nAppend each QBKey with their original value, separated with two spaces.\n\n", temp.c_str());
-        printf("Example:\n#\"0xf7d18982\"  Hello\n#\"0xfbb63e47\"  World\n\n");
-        return 0;
-      }
-      // Incorrect input
-      printf("Not a QBC script. Exiting\n[inputted file was %s]\n", fileName.Get());
-    } else if (argc < 4) { /* Outcome 3: QBC script and checksums table as inputs */
-      String input1("%s", argv[1]), input2("%s", argv[2]);
-
-      // Make sure file extensions are correct before proceeding
-      if (_app->Contains(input1, ".q") && _app->Contains(input2, ".checksums")) {
-        // Load the QBC script and checksums table and store into their respective strings
-        _app->LoadText(input1.Get(), &_qbcScript);
-        _app->LoadText(input2.Get(), &_qbkeyTable);
-
-        // Parse the checksums file
-        _app->ParseChecksumsFile(_qbkeyTable);
-
-        // Convert QBKey checksums back into their original values
-        _app->ProcessQBC(_qbcScript, &_outputStr);
-
-        // Write result into new file
-        _app->WriteText(_outputStr, DEFAULT_OUTPUT);
-
-        return 0;
-      }
-      // File extension check failed
-      printf("Incorrect inputs. Exiting.\n[inputted files were %s and %s]\n", input1.Get(), input2.Get());
     }
 
-    // If somehow we ended up here [probably due to an error], we'll return -1 to indicate an error
+    // If somehow we ended up here [probably due to an error], we'll return -1
+    // to indicate an error
     return -1;
   }
 
 private:
-  std::unique_ptr <GHChecksumLib> _app;
+  std::unique_ptr<GHChecksumLib> _app;
 
-  String _qbcScript, _qbkeyTable, _outputStr;
+  String _outputStrName;
+  String _roqScript, _qbcScript, _qbkeyTable, _outputStr;
 };
 
-}
+} // namespace ChecksumApp
