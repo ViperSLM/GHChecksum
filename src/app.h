@@ -21,7 +21,7 @@ public:
   inline ~ChecksumApp(void) { _app.reset(); }
 
   inline int Run(int argc, char **argv) {
-    _outputStrName.Set("%s", DEFAULT_OUTPUT); // Default name of output QBC file
+    _outputStrName = DEFAULT_OUTPUT; // Default name of output QBC file
     _app = std::make_unique<GHChecksumLib>(argc, argv);
     RunMode mode = RunMode::NONE;
     // Determine run type, depending on the command line arguments
@@ -29,7 +29,7 @@ public:
     if (_app->Contains(argv[1], ".q") &&
              _app->Contains(argv[2], ".checksums")) {
       if (argv[3] != nullptr) { // Arg 3 has something (used for output name)
-        _outputStrName.Set("%s", argv[3]);
+        _outputStrName = argv[3];
       }
       mode = RunMode::TRANSLATE;
     } // Translate mode
@@ -74,7 +74,7 @@ public:
       _app->ParseChecksumsFile(_qbkeyTable);
       _app->ProcessQBC(_qbcScript, &_outputStr);
 
-      _app->WriteText(_outputStr, _outputStrName.Get());
+      _app->WriteText(_outputStr, _outputStrName.c_str());
       return 0;
     default:
       _app->UsageMsg();
@@ -89,7 +89,7 @@ public:
 private:
   std::unique_ptr<GHChecksumLib> _app;
 
-  String _outputStrName;
+  std::string _outputStrName;
   String _roqScript, _qbcScript, _qbkeyTable, _outputStr;
 };
 

@@ -34,10 +34,7 @@ public:
   }
   ~GHChecksumLib_Impl(void) {}
 
-  void usageMsg(void) {
-    printf(
-        "Usage:\nGHChecksum.exe [Input .q file] [Output .checksums "
-        "file]\nOR\nGHChecksum.exe [Input .checksums file] [Input .q file]\n");
+  void usageMsg(void) { printf("----- GHChecksum Usage -----\nTo generate a checksums table:\n(QBC Scripts): GHChecksum [.q]\n(ROQ Scripts): GHChecksum [.txt]\n\nTo translate QBKeys in QBC script:\nGHChecksum [.q] [.checksums] [Output .q file, optional]\n");
   }
 
   bool hasArg(const char *arg, usize *foundArgIndex) {
