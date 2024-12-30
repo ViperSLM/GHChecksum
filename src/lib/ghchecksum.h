@@ -35,6 +35,7 @@ public:
   /* Does the input string contain a specific keyword? */
   bool Contains(String &input, const char *txt);
   bool Contains(const char *input, const char *txt);
+  bool HasArg(const char *arg, usize *foundArgIndex = nullptr);
 
   /* Look for unresolved checksums in QBC script
    and return a string containing a list of all checksums found. */

@@ -34,7 +34,11 @@ public:
   }
   ~GHChecksumLib_Impl(void) {}
 
-  void usageMsg(void) { printf("----- GHChecksum Usage -----\nTo generate a checksums table:\n(QBC Scripts): GHChecksum [.q]\n(ROQ Scripts): GHChecksum [.txt]\n\nTo translate QBKeys in QBC script:\nGHChecksum [.q] [.checksums] [Output .q file, optional]\n");
+  void usageMsg(void) { 
+    printf("----- GHChecksum Usage -----\n");
+    printf("To generate a checksums table:\n");
+    printf("(QBC Scripts): GHChecksum [.q]\n(ROQ Scripts): GHChecksum [.txt]\n\nTo translate QBKeys in QBC script:\nGHChecksum [.q] [.checksums] [Output .q file, optional]\n");
+    printf("(To skip CRC check for values, add '--nocheck' as an argument.)\n\n");
   }
 
   bool hasArg(const char *arg, usize *foundArgIndex) {
@@ -144,13 +148,19 @@ public:
 
         // Using the new checksums table for this
         u32 hex = std::stoul(qbKey, nullptr, 16);
-        u32 hexCheck = QBKeyFromString(origValue.c_str());
-        if (hexCheck == hex) { // Make sure the QBKey matches the original value
-          _checksumsTable[hex] = origValue;
+
+        // Check if QBKey and original value match via CRC calculation (skipped if '--nocheck' arg is applied)
+        if (!hasArg("--nocheck", nullptr)) {
+          u32 hexCheck = QBKeyFromString(origValue.c_str());
+          if (hexCheck == hex) { // Make sure the QBKey matches the original value
+            _checksumsTable[hex] = origValue;
+            continue;
+          }
+          printf("WARNING: CRC32 of value '%s' is incorrect. Skipping.\n[ QBKey for '%s' is supposed to be 0x%08x, got 0x%08x instead. ]\n\n", origValue.c_str(), origValue.c_str(), hex, hexCheck);
           continue;
         }
-        
-        printf("WARNING: CRC32 of value '%s' is incorrect. Skipping.\n[ QBKey for '%s' is supposed to be 0x%08x, got 0x%08x instead. ]\n\n", origValue.c_str(), origValue.c_str(), hex, hexCheck);
+
+        _checksumsTable[hex] = origValue;
       }
     }
   }
@@ -402,6 +412,10 @@ bool GHChecksumLib::Contains(String &input, const char *txt) {
 bool GHChecksumLib::Contains(const char *input, const char *txt) {
   String strInput("%s", input); // Store input into String
   return _impl->contains(strInput, txt);
+}
+
+bool GHChecksumLib::HasArg(const char *arg, usize *foundArgIndex) {
+  return _impl->hasArg(arg, foundArgIndex);
 }
 
 void GHChecksumLib::GetChecksums(String &input, String *output) {
