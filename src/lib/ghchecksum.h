@@ -1,7 +1,7 @@
 #ifndef GH_CONVCHECKSUM_H
 #define GH_CONVCHECKSUM_H
 #include "GHChecksum_API.h"
-#include "gh_inttypes.h"
+#include "inttypes.h"
 
 #include "CustomString.h"
 

@@ -9,8 +9,6 @@
 
 typedef size_t usize;
 
-namespace GHChecksum {
-
 /* StringCompare enum */
 enum class StringCompare {
   EQUAL,           // ==
@@ -68,7 +66,5 @@ private:
   LIB_PIMPL<String_Impl> _impl;
 #endif
 };
-
-}
 
 #endif

@@ -5,8 +5,6 @@
 #include <string>
 #include <vector>
 
-namespace GHChecksum {
-
 /* ------------------------------------------------ */
 /* String class implementation [Private] */
 /* ------------------------------------------------ */
@@ -178,5 +176,3 @@ bool String::Compare(String &input, StringCompare mode) const {
 usize String::Length(void) { return _impl->length(); }
 
 void String::Resize(usize newSize) { _impl->resize(newSize); }
-
-}

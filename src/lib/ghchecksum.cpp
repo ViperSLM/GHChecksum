@@ -35,10 +35,18 @@ public:
   ~GHChecksumLib_Impl(void) {}
 
   void usageMsg(void) { 
+  #if defined(_WIN32)
+  #define EX_NAME "GHChecksum.exe"
+  #else
+  #define EX_NAME "GHChecksum"
+  #endif
     printf("----- GHChecksum Usage -----\n");
     printf("To generate a checksums table:\n");
-    printf("(QBC Scripts): GHChecksum [.q]\n(ROQ Scripts): GHChecksum [.txt]\n\nTo translate QBKeys in QBC script:\nGHChecksum [.q] [.checksums] [Output .q file, optional]\n");
+    printf("(QBC Scripts): %s [.q]\n(ROQ Scripts): %s [.txt]\n\nTo translate QBKeys in QBC script:\n%s [.q] [.checksums] [Output .q file, optional]\n", EX_NAME, EX_NAME, EX_NAME);
     printf("(To skip CRC check for values, add '--nocheck' as an argument.)\n\n");
+    printf("To generate a single checksum from user input:\n");
+    printf("%s generate [User input]\nOR\n%s g [User input]\n", EX_NAME, EX_NAME);
+    printf("(NOTE: Spaces aren't supported [yet])\n\n");
   }
 
   bool hasArg(const char *arg, usize *foundArgIndex) {

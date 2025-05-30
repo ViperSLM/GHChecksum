@@ -14,7 +14,7 @@ constexpr const char *DEFAULT_OUTPUT = "output.q";
 namespace ChecksumApp {
 class ChecksumApp {
 public:
-  enum class RunMode { NONE, GEN_TABLE, GEN_TABLE_ROQ, TRANSLATE };
+  enum class RunMode { NONE, GEN_TABLE, GEN_TABLE_ROQ, TRANSLATE, QBGEN };
 
 public:
   inline ChecksumApp(void) {}
@@ -37,6 +37,8 @@ public:
       mode = RunMode::GEN_TABLE_ROQ;
     else if (_app->Contains(argv[1], ".q")) // Generate table
       mode = RunMode::GEN_TABLE;
+    else if (_app->Contains(argv[1], "generate") || _app->Contains(argv[1], "g")) // Generate single checksum from input
+      mode = RunMode::QBGEN;
 
     // Do different things depending on run mode
     std::string outputFile;
@@ -76,6 +78,17 @@ public:
 
       _app->WriteText(_outputStr, _outputStrName.c_str());
       return 0;
+    case RunMode::QBGEN:
+      if(argv[2] == nullptr) {
+        _app->UsageMsg();
+	return 0;
+      }
+      u32 qbIn;
+      qbIn = _app->GetQBKey(argv[2]);
+      printf("0x%08x  %s\n", qbIn, argv[2]);
+      return 0;
+      break;
+
     default:
       _app->UsageMsg();
       return 0;

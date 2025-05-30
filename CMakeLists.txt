@@ -23,7 +23,7 @@ endif()
 # Library
 add_library(${PROJECT_NAME}Lib ${GHCHECKSUM_LIB}
     src/lib/GHChecksum_API.h
-    src/lib/gh_inttypes.h
+    src/lib/inttypes.h
     src/lib/CustomString.h src/lib/CustomString.cpp
     src/lib/ghchecksum.h src/lib/ghchecksum.cpp
 )

@@ -2,9 +2,11 @@
 #ifndef GH_CHECKSUMAPI_H
 #define GH_CHECKSUMAPI_H
 
+#if defined(__cplusplus)
 #include <memory>
 #define LIB_PIMPL std::unique_ptr
 #define LIB_PIMPL_CREATE std::make_unique
+#endif
 
 #if defined(GH_STATIC_LIB)
 #define APP_API
